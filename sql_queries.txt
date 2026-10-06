@@ -1,0 +1,37 @@
+1. Запит, який відображає таблицю order_details та поле customer_id з таблиці orders відповідно для кожного поля запису з таблиці order_details. За допомогою вкладеного запиту в операторі SELECT.
+SELECT od.*, (SELECT o.customer_id FROM orders o WHERE o.id = od.order_id) AS customer_id
+FROM order_details od;
+
+2. Запит, який відображає таблицю order_details. Фільтрація результатів, щоб відповідний запис із таблиці orders виконував умову shipper_id=3. За допомогою вкладеного запиту в операторі WHERE.
+SELECT *
+FROM order_details
+WHERE order_id IN (SELECT id FROM orders WHERE shipper_id = 3);
+
+3. Запит, вкладений в операторі FROM, який обирає рядки з умовою quantity>10 з таблиці order_details. Для отриманих даних знаходження середнього значення поля quantity та групування за order_id.
+SELECT order_id, AVG(quantity) AS average_quantity
+FROM (SELECT order_id, quantity FROM order_details WHERE quantity > 10) AS temp_table
+GROUP BY order_id;
+
+4. Розв’язок завдання 3, використовуючи оператор WITH для створення тимчасової таблиці temp.
+WITH temp_table AS (SELECT order_id, quantity FROM order_details WHERE quantity > 10)
+SELECT order_id, AVG(quantity) AS average_quantity
+FROM temp_table
+GROUP BY order_id;
+
+5. Створення функції з двома параметрами, яка ділить перший параметр на другий. Обидва параметри та значення, що повертається, повинні мати тип FLOAT. Використання конструкції DROP FUNCTION IF EXISTS. Застосування функції до атрибута quantity таблиці order_details. Другим параметром може бути довільне число.
+DROP FUNCTION IF EXISTS DivideNumbers;
+DELIMITER //
+
+CREATE FUNCTION DivideNumbers(a FLOAT, b FLOAT)
+RETURNS FLOAT
+DETERMINISTIC
+NO SQL
+BEGIN
+    DECLARE result FLOAT;
+    SET result = a / b;
+    RETURN result;
+END //
+
+DELIMITER ;
+
+SELECT id, order_id, product_id, quantity, DivideNumbers(quantity, 2.0) AS divided_quantity FROM order_details;
